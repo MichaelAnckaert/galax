@@ -1,0 +1,6 @@
+# Blog
+
+Welcome to the blog!
+
+{% for post in posts %}=> {{ post.url }} {{ post.title }} 
+{% endfor %}
