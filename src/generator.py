@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 """
+Copyright 2021 Michael Anckaert
+
 This file is part of Galax.
 
 Galax is free software: you can redistribute it and/or modify
