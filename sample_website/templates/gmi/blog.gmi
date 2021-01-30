@@ -2,5 +2,5 @@
 
 Welcome to the blog!
 
-{% for post in posts %}=> {{ post.url }} {{ post.title }} 
+{% for post in posts %}=> {{ post.gmi_url }} {{ post.title }} 
 {% endfor %}
