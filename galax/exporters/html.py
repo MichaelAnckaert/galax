@@ -22,28 +22,32 @@ from jinja2 import Environment, FileSystemLoader
 
 
 def generate_article_list(link_map):
-    loader = FileSystemLoader('templates/html')
+    loader = FileSystemLoader("templates/html")
     env = Environment(loader=loader)
-    template = env.get_template('blog.html')
-    return template.render(posts=link_map)
+    template = env.get_template("blog.html")
+    return template.render(posts=link_map, title="Blog")
 
 
-def generate_html_for_source(contents):
+def generate_html_for_source(title: str, contents: str):
     contents = contents.replace(".md", ".html")
-    return markdown.markdown(contents)
+    loader = FileSystemLoader("templates/html")
+    env = Environment(loader=loader)
+    template = env.get_template("page.html")
+
+    contents = markdown.markdown(contents)
+    return template.render(contents=contents, title=title)
 
 
 def save_article_index(link_map):
     html = generate_article_list(link_map)
-    with open('output/html/blog.html', 'w') as f:
+    with open("output/html/blog.html", "w") as f:
         f.write(html)
-
 
 
 def save_contents(link_map):
     for link in link_map:
-        html_content = generate_html_for_source(link['contents'])
+        print(f"Rendering content '{link['path']}'...")
+        html_content = generate_html_for_source(link["title"], link["contents"])
         filename = f"output/html/{link['html_url']}"
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             f.write(html_content)
-

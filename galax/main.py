@@ -1,4 +1,4 @@
-"""
+"""regexp.match(path)
 Copyright 2021 Michael Anckaert
 
 This file is part of Galax.
@@ -18,6 +18,8 @@ along with Galax.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import argparse
+import os
+import re
 import shutil
 from pathlib import Path
 
@@ -26,9 +28,9 @@ from galax import utils
 
 
 def get_object_list():
-    p = Path('contents')
+    p = Path("contents")
     pages = [x for x in p.iterdir() if x.is_file()]
-    p = Path('contents/articles')
+    p = Path("contents/articles")
     articles = [x for x in p.iterdir() if x.is_file()]
     pages.extend(articles)
     return pages
@@ -46,21 +48,34 @@ def gmi_url_for_path(path):
     return url_for_path(path) + ".gmi"
 
 
+def extract_article_timestamp(path: str):
+    filename = os.path.basename(path)
+    regexp = re.compile(r"(\d{4}-\d{2}-\d{2})")
+    match = regexp.match(filename)
+    if match:
+        return match.group(0)
+    return None
+
+
 def build_link_map(articles):
     link_map = []
     for article_path in articles:
-        with open(article_path, 'r') as f:
+        with open(article_path, "r") as f:
             contents = f.readlines()
             title = contents[0][1:].strip()
+            timestamp = extract_article_timestamp(str(article_path))
 
-            link_map.append({
-                "title": title, 
-                "path": article_path, 
-                "gmi_url": gmi_url_for_path(article_path),
-                "html_url": html_url_for_path(article_path),
-                "contents": ''.join(contents),
-                "is_article": str(article_path).startswith('contents/articles')
-            })
+            link_map.append(
+                {
+                    "title": title,
+                    "timestamp": timestamp,
+                    "path": article_path,
+                    "gmi_url": gmi_url_for_path(article_path),
+                    "html_url": html_url_for_path(article_path),
+                    "contents": "".join(contents),
+                    "is_article": str(article_path).startswith("contents/articles"),
+                }
+            )
 
     return link_map
 
@@ -77,21 +92,24 @@ def generate():
     html.save_contents(link_map)
     gmi.save_contents(link_map)
 
-    article_map = [l for l in link_map if l['is_article']]
+    article_map = [l for l in link_map if l["is_article"]]
+    article_map = sorted(article_map, key=lambda k: k["timestamp"], reverse=True)
     html.save_article_index(article_map)
     gmi.save_article_index(article_map)
 
 
 def clean():
     try:
-        shutil.rmtree('output')
+        shutil.rmtree("output")
     except FileNotFoundError:
         pass
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Build your static site in HTML and Gemini output')
-    parser.add_argument('action', choices=['build', 'clean'])
+    parser = argparse.ArgumentParser(
+        description="Build your static site in HTML and Gemini output"
+    )
+    parser.add_argument("action", choices=["build", "clean"])
     args = parser.parse_args()
     if args.action == "build":
         generate()
